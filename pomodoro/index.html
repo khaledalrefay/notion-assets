@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pomodoro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@200;300&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#3B82F6;
+    --accent-soft:#60A5FA;
+    --glow:#DBEAFE;
+    --ink:#E8EFF9;
+    --muted:#7C8DA6;
+    --surface:rgba(255,255,255,.045);
+    --line:rgba(148,178,220,.16);
+    --track:rgba(148,178,220,.14);
+    --ring: clamp(104px, min(30vw, 44vh), 178px);
+  }
+  [data-theme="light"]{
+    --ink:#0B1220;
+    --muted:#5B6E85;
+    --surface:rgba(11,18,32,.035);
+    --line:rgba(11,18,32,.10);
+    --track:rgba(11,18,32,.09);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:transparent;
+    color:var(--ink);
+    font-family:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    padding:14px;overflow:hidden;-webkit-font-smoothing:antialiased;
+  }
+
+  .app{
+    display:flex;align-items:center;justify-content:center;
+    gap:clamp(16px,4vw,44px);
+    width:100%;max-width:640px;position:relative;
+  }
+
+  /* --- dial --- */
+  .dial{position:relative;width:var(--ring);height:var(--ring);flex:none}
+  .dial svg{width:100%;height:100%;display:block}
+  .track{fill:none;stroke:var(--track);stroke-width:2}
+  .progress{
+    fill:none;stroke:url(#arc);stroke-width:2.5;stroke-linecap:round;
+    transform:rotate(-90deg);transform-origin:100px 100px;
+    transition:stroke-dashoffset .3s linear;
+  }
+  .head{transform-origin:100px 100px;transition:transform .3s linear,opacity .4s ease}
+  .head .core{fill:var(--glow)}
+  .head .bloom{fill:url(#bloom)}
+  body.idle .head{opacity:.35}
+  body.idle .head .bloom{opacity:.35}
+
+  .readout{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  }
+  .time{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:200;
+    font-size:calc(var(--ring) * .27);line-height:1;letter-spacing:.01em;
+    font-variant-numeric:tabular-nums;direction:ltr;
+  }
+  .phase{font-size:calc(var(--ring) * .075);color:var(--muted);font-weight:500;letter-spacing:.04em}
+
+  /* --- panel --- */
+  .panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+  .modes{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .mode{
+    background:none;border:0;padding:0;cursor:pointer;color:var(--muted);
+    font:inherit;font-size:12.5px;font-weight:500;
+    display:flex;align-items:center;gap:7px;transition:color .2s ease;
+  }
+  .mode:hover{color:var(--ink)}
+  .mode .dot{
+    width:6px;height:6px;border-radius:1.5px;transform:rotate(45deg);
+    background:var(--track);transition:background .2s ease,box-shadow .2s ease;
+  }
+  .mode[aria-pressed="true"]{color:var(--ink)}
+  .mode[aria-pressed="true"] .dot{background:var(--accent);box-shadow:0 0 8px rgba(59,130,246,.7)}
+
+  .stepper{display:flex;align-items:center;gap:10px}
+  .step{
+    width:26px;height:26px;flex:none;border-radius:7px;
+    border:1px solid var(--line);background:var(--surface);color:var(--muted);
+    font:inherit;font-size:15px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:color .18s ease,border-color .18s ease;
+  }
+  .step:hover{color:var(--ink);border-color:var(--accent)}
+  .step:disabled{opacity:.35;cursor:not-allowed}
+  .len{font-size:13px;color:var(--muted);min-width:74px;text-align:center;font-variant-numeric:tabular-nums}
+  .len b{color:var(--ink);font-weight:500;font-size:15px}
+
+  .controls{display:flex;align-items:center;gap:9px}
+  .btn{
+    font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;
+    border-radius:9px;padding:9px 18px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink);
+    transition:border-color .18s ease,background .18s ease,color .18s ease;
+  }
+  .btn:hover{border-color:var(--accent-soft)}
+  .btn.primary{
+    background:var(--accent);border-color:var(--accent);color:#fff;
+    min-width:104px;box-shadow:0 4px 16px rgba(59,130,246,.25);
+  }
+  .btn.primary:hover{background:var(--accent-soft);border-color:var(--accent-soft)}
+  .btn.ghost{color:var(--muted)}
+  .btn.ghost:hover{color:var(--ink)}
+
+  .corner{position:absolute;top:0;inset-inline-end:0;display:flex;gap:4px}
+  .icon{
+    width:28px;height:28px;border:0;background:none;cursor:pointer;
+    color:var(--muted);border-radius:8px;display:flex;align-items:center;justify-content:center;
+    transition:color .18s ease,background .18s ease;
+  }
+  .icon:hover{color:var(--ink);background:var(--surface)}
+  .icon[aria-pressed="false"]{opacity:.4}
+  .icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  :focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px;border-radius:8px}
+
+  @keyframes chime{0%,100%{opacity:1}50%{opacity:.35}}
+  body.done .time{animation:chime .9s ease-in-out 3}
+
+  @media (max-width:520px){
+    .app{flex-direction:column;gap:16px}
+    .corner{position:static;justify-content:center;order:3}
+    .panel{align-items:center}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition-duration:0s !important;animation:none !important}
+  }
+</style>
+</head>
+<body class="idle">
+<div class="app">
+
+  <div class="dial">
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <linearGradient id="arc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#1E3A8A"/>
+          <stop offset="0.55" stop-color="#3B82F6"/>
+          <stop offset="1" stop-color="#93C5FD"/>
+        </linearGradient>
+        <radialGradient id="bloom" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#EFF6FF" stop-opacity="0.85"/>
+          <stop offset="0.4" stop-color="#60A5FA" stop-opacity="0.45"/>
+          <stop offset="1" stop-color="#1E3A8A" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle class="track" cx="100" cy="100" r="88"/>
+      <circle class="progress" id="arcPath" cx="100" cy="100" r="88"/>
+      <g class="head" id="head">
+        <circle class="bloom" cx="100" cy="12" r="13"/>
+        <circle class="core" cx="100" cy="12" r="3"/>
+      </g>
+    </svg>
+    <div class="readout">
+      <div class="time" id="time">25:00</div>
+      <div class="phase" id="phase">تركيز</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="modes" id="modes" role="group"></div>
+
+    <div class="stepper">
+      <button class="step" id="minus" type="button" aria-label="إنقاص دقيقة">−</button>
+      <span class="len"><b id="lenVal">25</b> <span id="lenUnit">دقيقة</span></span>
+      <button class="step" id="plus" type="button" aria-label="زيادة دقيقة">+</button>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="toggle" type="button">ابدأ</button>
+      <button class="btn ghost" id="reset" type="button">تصفير</button>
+      <button class="btn ghost" id="skip" type="button">تخطّي</button>
+    </div>
+  </div>
+
+  <div class="corner">
+    <button class="icon" id="sound" type="button" aria-pressed="true" aria-label="الصوت">
+      <svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+    </button>
+    <button class="icon" id="theme" type="button" aria-label="الثيم">
+      <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var qs = new URLSearchParams(location.search);
+  var num = function(key, fallback){
+    var v = parseInt(qs.get(key), 10);
+    return (isFinite(v) && v > 0 && v <= 180) ? v : fallback;
+  };
+
+  var LANG = qs.get("lang") === "en" ? "en" : "ar";
+  var T = {
+    ar:{work:"تركيز",short:"استراحة",long:"استراحة طويلة",start:"ابدأ",pause:"إيقاف",resume:"متابعة",
+        reset:"تصفير",skip:"تخطّي",unit:"دقيقة"},
+    en:{work:"Focus",short:"Break",long:"Long break",start:"Start",pause:"Pause",resume:"Resume",
+        reset:"Reset",skip:"Skip",unit:"min"}
+  }[LANG];
+
+  if(LANG === "en"){ document.documentElement.lang = "en"; document.documentElement.dir = "ltr"; }
+
+  var store = {
+    get:function(k){ try{ return localStorage.getItem("pomo."+k); }catch(e){ return null; } },
+    set:function(k,v){ try{ localStorage.setItem("pomo."+k,v); }catch(e){} }
+  };
+
+  var defaults = { work:num("work",25), short:num("short",5), long:num("long",15) };
+  var saved = null;
+  try{ saved = JSON.parse(store.get("dur")); }catch(e){}
+  var mins = (saved && saved.work) ? saved : defaults;
+
+  var CYCLES = num("cycles",4);
+  var AUTO = qs.get("auto") !== "0";
+
+  var el = {
+    time:document.getElementById("time"), phase:document.getElementById("phase"),
+    arc:document.getElementById("arcPath"), head:document.getElementById("head"),
+    modes:document.getElementById("modes"), lenVal:document.getElementById("lenVal"),
+    lenUnit:document.getElementById("lenUnit"), minus:document.getElementById("minus"),
+    plus:document.getElementById("plus"), toggle:document.getElementById("toggle"),
+    reset:document.getElementById("reset"), skip:document.getElementById("skip"),
+    sound:document.getElementById("sound"), theme:document.getElementById("theme")
+  };
+
+  el.lenUnit.textContent = T.unit;
+  el.reset.textContent = T.reset;
+  el.skip.textContent = T.skip;
+
+  var C = 2 * Math.PI * 88;
+  el.arc.style.strokeDasharray = C;
+
+  var MODES = ["work","short","long"];
+  var state = { mode:"work", running:false, endsAt:0, left:mins.work*60000, done:0 };
+
+  /* mode buttons */
+  MODES.forEach(function(m){
+    var b = document.createElement("button");
+    b.className = "mode"; b.type = "button"; b.dataset.mode = m;
+    b.innerHTML = '<span class="dot"></span><span>' + T[m] + '</span>';
+    b.addEventListener("click", function(){ setMode(m, false); });
+    el.modes.appendChild(b);
+  });
+
+  /* sound */
+  var ctx = null, soundOn = store.get("sound") !== "0" && qs.get("sound") !== "0";
+  function unlock(){
+    if(!ctx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) ctx = new AC();
+    }
+    if(ctx && ctx.state === "suspended") ctx.resume();
+  }
+  function chime(high){
+    if(!soundOn || !ctx) return;
+    [0,0.22].forEach(function(offset,i){
+      var t = ctx.currentTime + offset;
+      var osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(high ? (i ? 784 : 587) : (i ? 494 : 659), t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.16, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.55);
+    });
+  }
+
+  /* theme */
+  function applyTheme(v){
+    document.documentElement.setAttribute("data-theme", v);
+    el.theme.setAttribute("aria-pressed", v === "dark");
+    store.set("theme", v);
+  }
+  applyTheme(store.get("theme") || (qs.get("theme") === "light" ? "light" : "dark"));
+
+  function total(){ return mins[state.mode] * 60000; }
+  function remaining(){ return state.running ? Math.max(0, state.endsAt - Date.now()) : state.left; }
+
+  function render(){
+    var left = remaining(), tot = total();
+    var secs = Math.ceil(left / 1000);
+    var mm = Math.floor(secs / 60), ss = secs % 60;
+    el.time.textContent = (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+    el.phase.textContent = T[state.mode];
+
+    var p = tot ? 1 - (left / tot) : 0;
+    el.arc.style.strokeDashoffset = C * (1 - p);
+    el.head.style.transform = "rotate(" + (p * 360) + "deg)";
+
+    el.lenVal.textContent = mins[state.mode];
+    el.toggle.textContent = state.running ? T.pause : (left < tot ? T.resume : T.start);
+    el.minus.disabled = el.plus.disabled = state.running;
+    document.body.classList.toggle("idle", !state.running);
+
+    Array.prototype.forEach.call(el.modes.children, function(b){
+      b.setAttribute("aria-pressed", b.dataset.mode === state.mode);
+    });
+  }
+
+  function setMode(m, autostart){
+    state.mode = m;
+    state.left = total();
+    state.running = false;
+    if(autostart) start();
+    render();
+  }
+
+  function start(){
+    unlock();
+    state.endsAt = Date.now() + state.left;
+    state.running = true;
+    document.body.classList.remove("done");
+    render();
+  }
+  function pause(){
+    state.left = remaining();
+    state.running = false;
+    render();
+  }
+
+  function complete(){
+    state.running = false;
+    state.left = 0;
+    chime(state.mode === "work");
+    document.body.classList.add("done");
+    setTimeout(function(){ document.body.classList.remove("done"); }, 2800);
+
+    if(state.mode === "work"){
+      state.done++;
+      setMode(state.done % CYCLES === 0 ? "long" : "short", AUTO);
+    }else{
+      setMode("work", false);   /* الجلسة التالية تبدأ بضغطة منك */
+    }
+  }
+
+  setInterval(function(){
+    if(!state.running) return;
+    if(Date.now() >= state.endsAt) complete();
+    else render();
+  }, 250);
+
+  el.toggle.addEventListener("click", function(){
+    unlock();
+    state.running ? pause() : start();
+  });
+  el.reset.addEventListener("click", function(){ setMode(state.mode, false); });
+  el.skip.addEventListener("click", function(){
+    if(state.mode === "work"){
+      state.done++;
+      setMode(state.done % CYCLES === 0 ? "long" : "short", false);
+    }else setMode("work", false);
+  });
+
+  function bump(delta){
+    var v = mins[state.mode] + delta;
+    if(v < 1 || v > 180) return;
+    mins[state.mode] = v;
+    store.set("dur", JSON.stringify(mins));
+    state.left = total();
+    render();
+  }
+  el.minus.addEventListener("click", function(){ bump(-1); });
+  el.plus.addEventListener("click", function(){ bump(1); });
+
+  el.sound.addEventListener("click", function(){
+    soundOn = !soundOn;
+    el.sound.setAttribute("aria-pressed", soundOn);
+    store.set("sound", soundOn ? "1" : "0");
+    if(soundOn){ unlock(); chime(true); }
+  });
+  el.sound.setAttribute("aria-pressed", soundOn);
+
+  el.theme.addEventListener("click", function(){
+    applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.code === "Space"){ e.preventDefault(); state.running ? pause() : start(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
