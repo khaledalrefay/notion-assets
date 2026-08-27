@@ -6,25 +6,18 @@
 <title>Pomodoro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@200;300&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --accent:#3B82F6;
-    --accent-soft:#60A5FA;
-    --glow:#DBEAFE;
-    --ink:#E8EFF9;
-    --muted:#7C8DA6;
-    --surface:rgba(255,255,255,.045);
-    --line:rgba(148,178,220,.16);
-    --track:rgba(148,178,220,.14);
-    --ring: clamp(104px, min(30vw, 44vh), 178px);
-  }
-  [data-theme="light"]{
-    --ink:#0B1220;
-    --muted:#5B6E85;
-    --surface:rgba(11,18,32,.035);
-    --line:rgba(11,18,32,.10);
-    --track:rgba(11,18,32,.09);
+    --accent:#2563EB;
+    --accent-soft:#3B82F6;
+    --accent-deep:#1D4ED8;
+    --ink:#0F172A;
+    --muted:#64748B;
+    --line:#E2E8F0;
+    --track:#E6EDF7;
+    --surface:#F8FAFC;
+    --ring: clamp(108px, min(30vw, 46vh), 176px);
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
@@ -32,108 +25,119 @@
   body{
     background:transparent;
     color:var(--ink);
-    font-family:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     display:flex;align-items:center;justify-content:center;
-    padding:14px;overflow:hidden;-webkit-font-smoothing:antialiased;
+    padding:16px;overflow:hidden;-webkit-font-smoothing:antialiased;
   }
 
   .app{
     display:flex;align-items:center;justify-content:center;
-    gap:clamp(16px,4vw,44px);
-    width:100%;max-width:640px;position:relative;
+    gap:clamp(20px,5vw,52px);
+    width:100%;max-width:660px;
   }
 
-  /* --- dial --- */
+  /* ---------- dial ---------- */
   .dial{position:relative;width:var(--ring);height:var(--ring);flex:none}
-  .dial svg{width:100%;height:100%;display:block}
-  .track{fill:none;stroke:var(--track);stroke-width:2}
+  .dial svg{width:100%;height:100%;display:block;overflow:visible}
+  .track{fill:none;stroke:var(--track);stroke-width:2.5}
   .progress{
-    fill:none;stroke:url(#arc);stroke-width:2.5;stroke-linecap:round;
+    fill:none;stroke:url(#arc);stroke-width:3;stroke-linecap:round;
     transform:rotate(-90deg);transform-origin:100px 100px;
     transition:stroke-dashoffset .3s linear;
   }
-  .head{transform-origin:100px 100px;transition:transform .3s linear,opacity .4s ease}
-  .head .core{fill:var(--glow)}
-  .head .bloom{fill:url(#bloom)}
-  body.idle .head{opacity:.35}
-  body.idle .head .bloom{opacity:.35}
+  .head{transform-origin:100px 100px;transition:transform .3s linear,opacity .35s ease}
+  .head .core{fill:var(--accent)}
+  .head .bloom{fill:url(#bloom);transition:opacity .35s ease}
+  body.idle .head{opacity:.4}
+  body.idle .head .bloom{opacity:.3}
 
   .readout{
     position:absolute;inset:0;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   }
   .time{
-    font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:200;
-    font-size:calc(var(--ring) * .27);line-height:1;letter-spacing:.01em;
-    font-variant-numeric:tabular-nums;direction:ltr;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:300;
+    font-size:calc(var(--ring) * .265);line-height:1;
+    font-variant-numeric:tabular-nums;color:var(--ink);
+    transition:color .3s ease;
   }
-  .phase{font-size:calc(var(--ring) * .075);color:var(--muted);font-weight:500;letter-spacing:.04em}
+  .phase{
+    font-size:calc(var(--ring) * .072);color:var(--muted);
+    font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  }
 
-  /* --- panel --- */
-  .panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+  /* ---------- panel ---------- */
+  .panel{display:flex;flex-direction:column;gap:16px;min-width:236px}
 
-  .modes{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .modes{display:flex;align-items:center;gap:16px}
   .mode{
     background:none;border:0;padding:0;cursor:pointer;color:var(--muted);
     font:inherit;font-size:12.5px;font-weight:500;
-    display:flex;align-items:center;gap:7px;transition:color .2s ease;
+    display:flex;align-items:center;gap:7px;transition:color .18s ease;
   }
   .mode:hover{color:var(--ink)}
   .mode .dot{
     width:6px;height:6px;border-radius:1.5px;transform:rotate(45deg);
-    background:var(--track);transition:background .2s ease,box-shadow .2s ease;
+    background:#CBD5E1;transition:background .18s ease,box-shadow .18s ease;
   }
   .mode[aria-pressed="true"]{color:var(--ink)}
-  .mode[aria-pressed="true"] .dot{background:var(--accent);box-shadow:0 0 8px rgba(59,130,246,.7)}
+  .mode[aria-pressed="true"] .dot{background:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.14)}
 
-  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper{display:flex;align-items:center;gap:12px}
   .step{
-    width:26px;height:26px;flex:none;border-radius:7px;
-    border:1px solid var(--line);background:var(--surface);color:var(--muted);
-    font:inherit;font-size:15px;line-height:1;cursor:pointer;
+    width:28px;height:28px;flex:none;border-radius:8px;
+    border:1px solid var(--line);background:#fff;color:var(--muted);
+    font:inherit;font-size:16px;line-height:1;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    transition:color .18s ease,border-color .18s ease;
+    transition:color .16s ease,border-color .16s ease;
   }
-  .step:hover{color:var(--ink);border-color:var(--accent)}
-  .step:disabled{opacity:.35;cursor:not-allowed}
-  .len{font-size:13px;color:var(--muted);min-width:74px;text-align:center;font-variant-numeric:tabular-nums}
+  .step:hover:not(:disabled){color:var(--accent);border-color:var(--accent-soft)}
+  .step:disabled{opacity:.4;cursor:not-allowed}
+  .len{font-size:13px;color:var(--muted);min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
   .len b{color:var(--ink);font-weight:500;font-size:15px}
 
-  .controls{display:flex;align-items:center;gap:9px}
+  .controls{display:flex;align-items:center;gap:10px}
   .btn{
     font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;
-    border-radius:9px;padding:9px 18px;border:1px solid var(--line);
-    background:var(--surface);color:var(--ink);
-    transition:border-color .18s ease,background .18s ease,color .18s ease;
+    border-radius:9px;padding:10px 16px;border:1px solid var(--line);
+    background:#fff;color:var(--muted);
+    transition:color .16s ease,border-color .16s ease,background .16s ease;
   }
-  .btn:hover{border-color:var(--accent-soft)}
+  .btn:hover{color:var(--ink);border-color:#CBD5E1;background:var(--surface)}
   .btn.primary{
     background:var(--accent);border-color:var(--accent);color:#fff;
-    min-width:104px;box-shadow:0 4px 16px rgba(59,130,246,.25);
+    min-width:116px;box-shadow:0 2px 10px rgba(37,99,235,.22);
   }
-  .btn.primary:hover{background:var(--accent-soft);border-color:var(--accent-soft)}
-  .btn.ghost{color:var(--muted)}
-  .btn.ghost:hover{color:var(--ink)}
+  .btn.primary:hover{background:var(--accent-soft);border-color:var(--accent-soft);color:#fff}
 
-  .corner{position:absolute;top:0;inset-inline-end:0;display:flex;gap:4px}
   .icon{
-    width:28px;height:28px;border:0;background:none;cursor:pointer;
-    color:var(--muted);border-radius:8px;display:flex;align-items:center;justify-content:center;
-    transition:color .18s ease,background .18s ease;
+    width:32px;height:32px;margin-inline-start:auto;flex:none;
+    border:0;background:none;cursor:pointer;color:#94A3B8;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    transition:color .16s ease,background .16s ease;
   }
   .icon:hover{color:var(--ink);background:var(--surface)}
-  .icon[aria-pressed="false"]{opacity:.4}
-  .icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .icon[aria-pressed="false"]{color:#CBD5E1}
+  .icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .icon .slash{display:none}
+  .icon[aria-pressed="false"] .wave{display:none}
+  .icon[aria-pressed="false"] .slash{display:block}
 
   :focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px;border-radius:8px}
 
-  @keyframes chime{0%,100%{opacity:1}50%{opacity:.35}}
-  body.done .time{animation:chime .9s ease-in-out 3}
+  /* ---------- ringing ---------- */
+  @keyframes throb{0%,100%{opacity:1}50%{opacity:.42}}
+  @keyframes halo{0%,100%{r:13;opacity:.5}50%{r:19;opacity:.9}}
+  body.ringing .time{color:var(--accent);animation:throb 1.1s ease-in-out infinite}
+  body.ringing .phase{color:var(--accent)}
+  body.ringing .head{opacity:1}
+  body.ringing .head .bloom{animation:halo 1.1s ease-in-out infinite}
+  body.ringing .btn.primary{animation:throb 1.1s ease-in-out infinite}
 
-  @media (max-width:520px){
-    .app{flex-direction:column;gap:16px}
-    .corner{position:static;justify-content:center;order:3}
-    .panel{align-items:center}
+  @media (max-width:560px){
+    .app{flex-direction:column;gap:18px}
+    .panel{align-items:center;min-width:0}
+    .icon{margin-inline-start:0}
   }
   @media (prefers-reduced-motion:reduce){
     *{transition-duration:0s !important;animation:none !important}
@@ -147,52 +151,50 @@
     <svg viewBox="0 0 200 200" aria-hidden="true">
       <defs>
         <linearGradient id="arc" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#1E3A8A"/>
-          <stop offset="0.55" stop-color="#3B82F6"/>
-          <stop offset="1" stop-color="#93C5FD"/>
+          <stop offset="0" stop-color="#93C5FD"/>
+          <stop offset="0.5" stop-color="#3B82F6"/>
+          <stop offset="1" stop-color="#1D4ED8"/>
         </linearGradient>
         <radialGradient id="bloom" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stop-color="#EFF6FF" stop-opacity="0.85"/>
-          <stop offset="0.4" stop-color="#60A5FA" stop-opacity="0.45"/>
-          <stop offset="1" stop-color="#1E3A8A" stop-opacity="0"/>
+          <stop offset="0" stop-color="#3B82F6" stop-opacity="0.55"/>
+          <stop offset="0.45" stop-color="#60A5FA" stop-opacity="0.28"/>
+          <stop offset="1" stop-color="#93C5FD" stop-opacity="0"/>
         </radialGradient>
       </defs>
       <circle class="track" cx="100" cy="100" r="88"/>
       <circle class="progress" id="arcPath" cx="100" cy="100" r="88"/>
       <g class="head" id="head">
         <circle class="bloom" cx="100" cy="12" r="13"/>
-        <circle class="core" cx="100" cy="12" r="3"/>
+        <circle class="core" cx="100" cy="12" r="3.2"/>
       </g>
     </svg>
     <div class="readout">
       <div class="time" id="time">25:00</div>
-      <div class="phase" id="phase">تركيز</div>
+      <div class="phase" id="phase">Focus</div>
     </div>
   </div>
 
   <div class="panel">
-    <div class="modes" id="modes" role="group"></div>
+    <div class="modes" id="modes" role="group" aria-label="Timer mode"></div>
 
     <div class="stepper">
-      <button class="step" id="minus" type="button" aria-label="إنقاص دقيقة">−</button>
-      <span class="len"><b id="lenVal">25</b> <span id="lenUnit">دقيقة</span></span>
-      <button class="step" id="plus" type="button" aria-label="زيادة دقيقة">+</button>
+      <button class="step" id="minus" type="button" aria-label="Decrease by one minute">&minus;</button>
+      <span class="len"><b id="lenVal">25</b> min</span>
+      <button class="step" id="plus" type="button" aria-label="Increase by one minute">+</button>
     </div>
 
     <div class="controls">
-      <button class="btn primary" id="toggle" type="button">ابدأ</button>
-      <button class="btn ghost" id="reset" type="button">تصفير</button>
-      <button class="btn ghost" id="skip" type="button">تخطّي</button>
+      <button class="btn primary" id="toggle" type="button">Start</button>
+      <button class="btn" id="reset" type="button">Reset</button>
+      <button class="btn" id="skip" type="button">Skip</button>
+      <button class="icon" id="sound" type="button" aria-pressed="true" aria-label="Sound">
+        <svg viewBox="0 0 24 24">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+          <path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7"/>
+          <path class="slash" d="m16 9.5 5 5m0-5-5 5"/>
+        </svg>
+      </button>
     </div>
-  </div>
-
-  <div class="corner">
-    <button class="icon" id="sound" type="button" aria-pressed="true" aria-label="الصوت">
-      <svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
-    </button>
-    <button class="icon" id="theme" type="button" aria-label="الثيم">
-      <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
-    </button>
   </div>
 
 </div>
@@ -202,65 +204,49 @@
   "use strict";
 
   var qs = new URLSearchParams(location.search);
-  var num = function(key, fallback){
+  function num(key, fallback){
     var v = parseInt(qs.get(key), 10);
     return (isFinite(v) && v > 0 && v <= 180) ? v : fallback;
-  };
+  }
 
-  var LANG = qs.get("lang") === "en" ? "en" : "ar";
-  var T = {
-    ar:{work:"تركيز",short:"استراحة",long:"استراحة طويلة",start:"ابدأ",pause:"إيقاف",resume:"متابعة",
-        reset:"تصفير",skip:"تخطّي",unit:"دقيقة"},
-    en:{work:"Focus",short:"Break",long:"Long break",start:"Start",pause:"Pause",resume:"Resume",
-        reset:"Reset",skip:"Skip",unit:"min"}
-  }[LANG];
-
-  if(LANG === "en"){ document.documentElement.lang = "en"; document.documentElement.dir = "ltr"; }
+  var LABEL = { work:"Focus", short:"Break", long:"Long break" };
+  var NEXT_LABEL = { work:"Start focus", short:"Start break", long:"Start long break" };
 
   var store = {
     get:function(k){ try{ return localStorage.getItem("pomo."+k); }catch(e){ return null; } },
     set:function(k,v){ try{ localStorage.setItem("pomo."+k,v); }catch(e){} }
   };
 
-  var defaults = { work:num("work",25), short:num("short",5), long:num("long",15) };
-  var saved = null;
-  try{ saved = JSON.parse(store.get("dur")); }catch(e){}
-  var mins = (saved && saved.work) ? saved : defaults;
+  var mins = { work:num("work",25), short:num("short",5), long:num("long",15) };
+  try{
+    var saved = JSON.parse(store.get("dur"));
+    if(saved && saved.work) mins = saved;
+  }catch(e){}
 
   var CYCLES = num("cycles",4);
-  var AUTO = qs.get("auto") !== "0";
+  var MAX_RING = 120000;              /* alarm self-stops after 2 minutes */
 
-  var el = {
-    time:document.getElementById("time"), phase:document.getElementById("phase"),
-    arc:document.getElementById("arcPath"), head:document.getElementById("head"),
-    modes:document.getElementById("modes"), lenVal:document.getElementById("lenVal"),
-    lenUnit:document.getElementById("lenUnit"), minus:document.getElementById("minus"),
-    plus:document.getElementById("plus"), toggle:document.getElementById("toggle"),
-    reset:document.getElementById("reset"), skip:document.getElementById("skip"),
-    sound:document.getElementById("sound"), theme:document.getElementById("theme")
-  };
-
-  el.lenUnit.textContent = T.unit;
-  el.reset.textContent = T.reset;
-  el.skip.textContent = T.skip;
+  var el = {};
+  ["time","phase","arcPath","head","modes","lenVal","minus","plus","toggle","reset","skip","sound"]
+    .forEach(function(id){ el[id] = document.getElementById(id); });
 
   var C = 2 * Math.PI * 88;
-  el.arc.style.strokeDasharray = C;
+  el.arcPath.style.strokeDasharray = C;
 
-  var MODES = ["work","short","long"];
-  var state = { mode:"work", running:false, endsAt:0, left:mins.work*60000, done:0 };
+  var state = { mode:"work", running:false, ringing:false, endsAt:0, left:mins.work*60000, done:0 };
 
-  /* mode buttons */
-  MODES.forEach(function(m){
+  ["work","short","long"].forEach(function(m){
     var b = document.createElement("button");
     b.className = "mode"; b.type = "button"; b.dataset.mode = m;
-    b.innerHTML = '<span class="dot"></span><span>' + T[m] + '</span>';
-    b.addEventListener("click", function(){ setMode(m, false); });
+    b.innerHTML = '<span class="dot"></span><span>' + LABEL[m] + '</span>';
+    b.addEventListener("click", function(){ stopAlarm(); setMode(m); });
     el.modes.appendChild(b);
   });
 
-  /* sound */
-  var ctx = null, soundOn = store.get("sound") !== "0" && qs.get("sound") !== "0";
+  /* ---------------- audio ---------------- */
+  var ctx = null, live = [], loop = null, ringStarted = 0;
+  var soundOn = store.get("sound") !== "0" && qs.get("sound") !== "0";
+
   function unlock(){
     if(!ctx){
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -268,29 +254,70 @@
     }
     if(ctx && ctx.state === "suspended") ctx.resume();
   }
-  function chime(high){
-    if(!soundOn || !ctx) return;
-    [0,0.22].forEach(function(offset,i){
-      var t = ctx.currentTime + offset;
-      var osc = ctx.createOscillator(), gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(high ? (i ? 784 : 587) : (i ? 494 : 659), t);
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.16, t + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(t); osc.stop(t + 0.55);
+
+  function note(freq, at, dur, peak, type){
+    if(!ctx) return;
+    var osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.setValueAtTime(freq, at);
+    gain.gain.setValueAtTime(0.0001, at);
+    gain.gain.exponentialRampToValueAtTime(peak, at + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(at); osc.stop(at + dur + 0.05);
+    live.push(osc, gain);
+  }
+
+  /* end of focus: four rising notes + a warm closing chord - a sense of achievement */
+  function playReward(){
+    if(!ctx) return;
+    var t = ctx.currentTime + 0.05;
+    [523.25, 659.25, 783.99, 1046.50].forEach(function(f, i){
+      note(f, t + i * 0.16, 0.55, 0.16, "sine");
+      note(f * 2, t + i * 0.16, 0.28, 0.045, "triangle");
     });
+    note(783.99, t + 0.78, 1.5, 0.12, "sine");
+    note(1046.50, t + 0.78, 1.5, 0.09, "sine");
   }
 
-  /* theme */
-  function applyTheme(v){
-    document.documentElement.setAttribute("data-theme", v);
-    el.theme.setAttribute("aria-pressed", v === "dark");
-    store.set("theme", v);
+  /* end of break: repeating double pulses - a clear call back to work */
+  function playCall(){
+    if(!ctx) return;
+    var t = ctx.currentTime + 0.05;
+    for(var i = 0; i < 3; i++){
+      var b = t + i * 0.42;
+      note(880, b, 0.16, 0.15, "sine");
+      note(660, b + 0.17, 0.2, 0.15, "sine");
+    }
+    note(587.33, t + 1.35, 0.7, 0.11, "sine");
   }
-  applyTheme(store.get("theme") || (qs.get("theme") === "light" ? "light" : "dark"));
 
+  function startAlarm(reward){
+    ringStarted = Date.now();
+    state.ringing = true;
+    document.body.classList.add("ringing");
+    if(!soundOn) return;
+    unlock();
+    var play = reward ? playReward : playCall;
+    play();
+    loop = setInterval(function(){
+      if(Date.now() - ringStarted > MAX_RING){ stopAlarm(); return; }
+      play();
+    }, reward ? 3400 : 2600);
+  }
+
+  function stopAlarm(){
+    if(loop){ clearInterval(loop); loop = null; }
+    live.forEach(function(n){ try{ n.stop ? n.stop() : n.disconnect(); }catch(e){} });
+    live = [];
+    if(state.ringing){
+      state.ringing = false;
+      document.body.classList.remove("ringing");
+      render();
+    }
+  }
+
+  /* ---------------- timer ---------------- */
   function total(){ return mins[state.mode] * 60000; }
   function remaining(){ return state.running ? Math.max(0, state.endsAt - Date.now()) : state.left; }
 
@@ -299,15 +326,23 @@
     var secs = Math.ceil(left / 1000);
     var mm = Math.floor(secs / 60), ss = secs % 60;
     el.time.textContent = (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
-    el.phase.textContent = T[state.mode];
 
     var p = tot ? 1 - (left / tot) : 0;
-    el.arc.style.strokeDashoffset = C * (1 - p);
+    el.arcPath.style.strokeDashoffset = C * (1 - p);
     el.head.style.transform = "rotate(" + (p * 360) + "deg)";
 
     el.lenVal.textContent = mins[state.mode];
-    el.toggle.textContent = state.running ? T.pause : (left < tot ? T.resume : T.start);
-    el.minus.disabled = el.plus.disabled = state.running;
+
+    if(state.ringing){
+      el.phase.textContent = state.mode === "work" ? "Back to work" : "Session done";
+      el.toggle.textContent = "Stop alarm";
+    }else{
+      el.phase.textContent = LABEL[state.mode];
+      el.toggle.textContent = state.running ? "Pause"
+        : (left < tot ? "Resume" : NEXT_LABEL[state.mode]);
+    }
+
+    el.minus.disabled = el.plus.disabled = state.running || state.ringing;
     document.body.classList.toggle("idle", !state.running);
 
     Array.prototype.forEach.call(el.modes.children, function(b){
@@ -315,11 +350,10 @@
     });
   }
 
-  function setMode(m, autostart){
+  function setMode(m){
     state.mode = m;
-    state.left = total();
+    state.left = mins[m] * 60000;
     state.running = false;
-    if(autostart) start();
     render();
   }
 
@@ -327,9 +361,9 @@
     unlock();
     state.endsAt = Date.now() + state.left;
     state.running = true;
-    document.body.classList.remove("done");
     render();
   }
+
   function pause(){
     state.left = remaining();
     state.running = false;
@@ -337,18 +371,17 @@
   }
 
   function complete(){
+    var wasWork = state.mode === "work";
     state.running = false;
-    state.left = 0;
-    chime(state.mode === "work");
-    document.body.classList.add("done");
-    setTimeout(function(){ document.body.classList.remove("done"); }, 2800);
-
-    if(state.mode === "work"){
+    if(wasWork){
       state.done++;
-      setMode(state.done % CYCLES === 0 ? "long" : "short", AUTO);
+      state.mode = (state.done % CYCLES === 0) ? "long" : "short";
     }else{
-      setMode("work", false);   /* الجلسة التالية تبدأ بضغطة منك */
+      state.mode = "work";
     }
+    state.left = total();
+    startAlarm(wasWork);
+    render();
   }
 
   setInterval(function(){
@@ -357,16 +390,21 @@
     else render();
   }, 250);
 
+  /* ---------------- controls ---------------- */
   el.toggle.addEventListener("click", function(){
     unlock();
+    if(state.ringing){ stopAlarm(); return; }
     state.running ? pause() : start();
   });
-  el.reset.addEventListener("click", function(){ setMode(state.mode, false); });
+
+  el.reset.addEventListener("click", function(){ stopAlarm(); setMode(state.mode); });
+
   el.skip.addEventListener("click", function(){
+    stopAlarm();
     if(state.mode === "work"){
       state.done++;
-      setMode(state.done % CYCLES === 0 ? "long" : "short", false);
-    }else setMode("work", false);
+      setMode(state.done % CYCLES === 0 ? "long" : "short");
+    }else setMode("work");
   });
 
   function bump(delta){
@@ -384,16 +422,16 @@
     soundOn = !soundOn;
     el.sound.setAttribute("aria-pressed", soundOn);
     store.set("sound", soundOn ? "1" : "0");
-    if(soundOn){ unlock(); chime(true); }
+    if(!soundOn) stopAlarm();
+    else { unlock(); note(880, ctx ? ctx.currentTime + 0.02 : 0, 0.3, 0.12, "sine"); }
   });
   el.sound.setAttribute("aria-pressed", soundOn);
 
-  el.theme.addEventListener("click", function(){
-    applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
-  });
-
   document.addEventListener("keydown", function(e){
-    if(e.code === "Space"){ e.preventDefault(); state.running ? pause() : start(); }
+    if(e.code === "Space" || e.code === "Enter"){
+      e.preventDefault();
+      el.toggle.click();
+    }
   });
 
   render();
