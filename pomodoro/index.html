@@ -41,7 +41,7 @@
 
   /* ============ DARK ============ */
   [data-theme="dark"]{
-    --bg:#1F1F1F;           /* sits on Notion's #191919 */
+    --bg:#191919;           /* Notion dark page color */
     --border:rgba(255,255,255,.10);
     --shadow:none;
 
@@ -69,7 +69,7 @@
   }
   @media (prefers-color-scheme: dark){
     [data-theme="auto"]{
-      --bg:#1F1F1F;
+      --bg:#191919;
       --border:rgba(255,255,255,.10);
       --shadow:none;
       --ink:#EAF1FA;
@@ -95,26 +95,21 @@
 
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
+  html{background:var(--bg)}
   body{
-    background:transparent;
+    background:var(--bg);
     color:var(--ink);
     font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     display:flex;align-items:center;justify-content:center;
     padding:10px;overflow:hidden;-webkit-font-smoothing:antialiased;
   }
 
-  /* the card owns its own background, so contrast never depends on the page behind it */
   .app{
     display:flex;flex-direction:column;align-items:center;
     gap:clamp(10px, 2vh, 16px);
     width:100%;max-width:300px;
-    padding:clamp(14px,2.6vh,20px) 20px;
-    background:var(--bg);
-    border:1px solid var(--border);
-    border-radius:14px;
-    box-shadow:var(--shadow);
   }
-  body.bare .app{background:transparent;border-color:transparent;box-shadow:none}
+  html.bare,html.bare body{background:transparent}
 
   /* ---------- modes ---------- */
   .modes{display:flex;align-items:center;justify-content:center;gap:16px}
@@ -229,7 +224,6 @@
   @media (max-height:280px){
     .stepper{display:none}
     :root{--ring:clamp(84px,30vh,120px)}
-    .app{padding:12px 18px}
   }
   @media (prefers-reduced-motion:reduce){
     *{transition-duration:0s !important;animation:none !important}
@@ -314,7 +308,9 @@
     return (isFinite(v) && v > 0 && v <= 180) ? v : fallback;
   }
 
-  if(qs.get("card") === "0") document.body.classList.add("bare");
+  var bg = (qs.get("bg") || "").replace("#","").toLowerCase();
+  if(bg === "transparent") document.documentElement.classList.add("bare");
+  else if(/^[0-9a-f]{6}$/.test(bg)) document.documentElement.style.setProperty("--bg", "#" + bg);
 
   var LABEL = { work:"Focus", short:"Break", long:"Long break" };
   var NEXT_LABEL = { work:"Start focus", short:"Start break", long:"Start long break" };
