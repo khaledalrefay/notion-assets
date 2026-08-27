@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 32" width="100%" height="32" preserveAspectRatio="xMidYMid meet" role="presentation" aria-hidden="true">
+  <defs>
+    <linearGradient id="rail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0"    stop-color="#0B1220" stop-opacity="0"/>
+      <stop offset="0.18" stop-color="#1E3A8A" stop-opacity="0.5"/>
+      <stop offset="0.5"  stop-color="#3B82F6" stop-opacity="0.9"/>
+      <stop offset="0.82" stop-color="#1E3A8A" stop-opacity="0.5"/>
+      <stop offset="1"    stop-color="#0B1220" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="beamR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0"    stop-color="#1E3A8A" stop-opacity="0"/>
+      <stop offset="0.6"  stop-color="#60A5FA" stop-opacity="0.8"/>
+      <stop offset="1"    stop-color="#DBEAFE" stop-opacity="1"/>
+    </linearGradient>
+
+    <linearGradient id="beamL" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0"    stop-color="#1E3A8A" stop-opacity="0"/>
+      <stop offset="0.6"  stop-color="#60A5FA" stop-opacity="0.8"/>
+      <stop offset="1"    stop-color="#DBEAFE" stop-opacity="1"/>
+    </linearGradient>
+
+    <radialGradient id="head" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0"    stop-color="#EFF6FF" stop-opacity="0.9"/>
+      <stop offset="0.35" stop-color="#60A5FA" stop-opacity="0.5"/>
+      <stop offset="1"    stop-color="#1E3A8A" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0"   stop-color="#3B82F6" stop-opacity="0.55"/>
+      <stop offset="0.6" stop-color="#1E3A8A" stop-opacity="0.15"/>
+      <stop offset="1"   stop-color="#0B1220" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="fadeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0"    stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0.13" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.87" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="1"    stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+
+    <mask id="fade">
+      <rect x="0" y="0" width="1200" height="32" fill="url(#fadeGrad)"/>
+    </mask>
+  </defs>
+
+  <rect x="0" y="15.25" width="1200" height="1.5" rx="0.75" fill="url(#rail)">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="5s" calcMode="spline"
+             keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" repeatCount="indefinite"/>
+  </rect>
+
+  <g mask="url(#fade)">
+    <g transform="translate(0,0)">
+      <animateTransform attributeName="transform" type="translate"
+                        values="0,0;600,0;600,0" keyTimes="0;0.55;1" dur="5s"
+                        calcMode="spline" keySplines="0.22 0.6 0.3 1;0 0 1 1" repeatCount="indefinite"/>
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.12;0.48;0.6;1"
+                 dur="5s" repeatCount="indefinite"/>
+        <ellipse cx="0" cy="16" rx="90" ry="7" fill="url(#head)"/>
+        <rect x="-300" y="15" width="300" height="2" rx="1" fill="url(#beamR)"/>
+        <circle cx="0" cy="16" r="2" fill="#EFF6FF"/>
+      </g>
+    </g>
+
+    <g transform="translate(1200,0)">
+      <animateTransform attributeName="transform" type="translate"
+                        values="1200,0;600,0;600,0" keyTimes="0;0.55;1" dur="5s"
+                        calcMode="spline" keySplines="0.22 0.6 0.3 1;0 0 1 1" repeatCount="indefinite"/>
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.12;0.48;0.6;1"
+                 dur="5s" repeatCount="indefinite"/>
+        <ellipse cx="0" cy="16" rx="90" ry="7" fill="url(#head)"/>
+        <rect x="0" y="15" width="300" height="2" rx="1" fill="url(#beamL)"/>
+        <circle cx="0" cy="16" r="2" fill="#EFF6FF"/>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(600,16)">
+    <ellipse cx="0" cy="0" rx="110" ry="9" fill="url(#halo)" opacity="0.25">
+      <animate attributeName="opacity" values="0.2;0.2;0.8;0.25;0.2" keyTimes="0;0.5;0.58;0.8;1"
+               dur="5s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <ellipse cx="0" cy="0" rx="6" ry="2" fill="none" stroke="#93C5FD" stroke-width="1" opacity="0">
+      <animate attributeName="rx" values="6;6;110;110" keyTimes="0;0.55;0.82;1" dur="5s"
+               calcMode="spline" keySplines="0 0 1 1;0.15 0.7 0.3 1;0 0 1 1" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="2;2;8;8" keyTimes="0;0.55;0.82;1" dur="5s"
+               calcMode="spline" keySplines="0 0 1 1;0.15 0.7 0.3 1;0 0 1 1" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0;0.65;0;0" keyTimes="0;0.54;0.6;0.82;1"
+               dur="5s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <g>
+      <animateTransform attributeName="transform" type="scale" values="1;1;1.3;1;1"
+                        keyTimes="0;0.5;0.58;0.75;1" dur="5s" calcMode="spline"
+                        keySplines="0 0 1 1;0.2 0.7 0.3 1;0.4 0 0.6 1;0 0 1 1" repeatCount="indefinite"/>
+      <rect x="-4.5" y="-4.5" width="9" height="9" rx="1.6" transform="rotate(45)" fill="#3B82F6"/>
+      <rect x="-2.25" y="-2.25" width="4.5" height="4.5" rx="0.9" transform="rotate(45)" fill="#BFDBFE"/>
+    </g>
+  </g>
+</svg>
