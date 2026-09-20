@@ -105,6 +105,7 @@
   }
 
   .app{
+    position:relative;
     display:flex;flex-direction:column;align-items:center;
     gap:clamp(10px, 2vh, 16px);
     width:100%;max-width:300px;
@@ -243,6 +244,37 @@
   .controls.brk .btn{width:100%;min-width:0;padding:9px 6px}
   .controls.brk .icon{justify-self:center}
 
+  .namerow{display:flex;align-items:center;justify-content:center;gap:6px;max-width:100%}
+  .help{
+    width:17px;height:17px;flex:none;padding:0;border:0;background:none;
+    cursor:pointer;color:var(--faint);transition:color .16s ease;
+  }
+  .help:hover{color:var(--accent-text)}
+  .help svg{
+    width:100%;height:100%;display:block;fill:none;stroke:currentColor;
+    stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  }
+
+  /* ---------- how-to panel ---------- */
+  .sheet{
+    position:absolute;inset:-8px;z-index:5;display:none;flex-direction:column;gap:9px;
+    background:var(--bg);border:1px solid var(--border);border-radius:12px;
+    padding:12px 13px 11px;text-align:left;overflow-y:auto;
+  }
+  .sheethead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex:none}
+  .sheettitle{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3;padding-top:3px}
+  .sheethead .icon{width:24px;height:24px;margin:-2px -4px 0 0}
+  .sheethead .icon svg{width:14px;height:14px}
+  .sheetbody{
+    flex:1;font-size:12px;line-height:1.55;color:var(--muted);
+    white-space:pre-line;overflow-y:auto;
+  }
+  .sheetnote{
+    flex:none;font-size:10.5px;line-height:1.45;color:var(--faint);
+    border-top:1px solid var(--line);padding-top:8px;
+  }
+  body.sheet-on .sheet{display:flex}
+
   .stretchbar{
     width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
     font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;
@@ -323,7 +355,16 @@
   </div>
 
   <div class="stepinfo" aria-live="polite">
-    <div class="stepname" id="stepName"></div>
+    <div class="namerow">
+      <span class="stepname" id="stepName"></span>
+      <button class="help" id="help" type="button" aria-label="How to do this step">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9.5 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.8.7-.8 1.3v.4"/>
+          <circle cx="12" cy="16.7" r="0.7" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+    </div>
     <div class="stephow" id="stepHow"></div>
   </div>
 
@@ -369,6 +410,16 @@
     </svg>
     <span>Stretch break</span>
   </button>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheethead">
+      <span class="sheettitle" id="sheetTitle"></span>
+      <button class="icon" id="sheetClose" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11m0-11-11 11"/></svg>
+      </button>
+    </div>
+    <div class="sheetbody" id="sheetBody"></div>
+    <div class="sheetnote">Light stretch, never pain. Hold still instead of bouncing, and keep breathing.</div>
+  </div>
 
 </div>
 
@@ -407,13 +458,26 @@
      s = seconds on the dial, r = a count to work through at your own pace.
      Add or remove steps freely - the screen follows the list.             */
   var ROUTINE = [
-    {n:"Walk in place",   h:"Stand all the way up. Easy steps, loose arms.",           s:45},
-    {n:"Shoulder rolls",  h:"Five rolls back, then five forward.",                     r:"10 rolls"},
-    {n:"Chest opener",    h:"Clasp your hands behind your back and lift your chest.",  s:20},
-    {n:"Neck turns",      h:"Turn slowly to each side. Stop where it tightens.",       r:"2 per side"},
-    {n:"Side bends",      h:"Reach one arm overhead and lean away from it.",           r:"3 per side"},
-    {n:"Wrist stretch",   h:"Press each palm back gently, 15 seconds per hand.",       s:30},
-    {n:"Eye rest",        h:"Look at something about 6 metres away and blink softly.", s:20}
+    {n:"Walk in place",   h:"Stand all the way up. Easy steps, loose arms.",           s:45,
+     d:"Get out of the chair completely, not half way.\n\nLift your knees to a comfortable height and let your arms swing loose.\n\nThis is not exercise. It is moving blood after 25 still minutes, and loosening the hips and ankles before anything gets stretched."},
+
+    {n:"Shoulder rolls",  h:"Five rolls back, then five forward.",                     r:"10 rolls",
+     d:"Stand tall with your arms hanging loose at your sides.\n\nLift the shoulders towards your ears, take them back, drop them, then bring them forward: one slow full circle. Five circles back, then five forward.\n\nMove the shoulders on their own. The arms stay relaxed and do not help."},
+
+    {n:"Chest opener",    h:"Clasp your hands behind your back and lift your chest.",  s:20,
+     d:"Clasp your hands behind your back and straighten the elbows.\n\nLower the clasped hands and lift your chest up and forward. You should feel the front of the chest and the shoulders open.\n\nIf you cannot clasp, hold a door frame or the edge of a chair behind you and lean away from it.\n\nKeep the neck neutral. Do not drop your head back."},
+
+    {n:"Neck turns",      h:"Turn slowly to each side. Stop where it tightens.",       r:"2 per side",
+     d:"Head level, shoulders down and still.\n\nTurn slowly towards one shoulder until you feel a light stretch. Hold two or three seconds, return to centre, then the other side.\n\nThis is the slowest step in the set. Never push the neck to its end range."},
+
+    {n:"Side bends",      h:"Reach one arm overhead and lean away from it.",           r:"3 per side",
+     d:"Feet about hip width apart.\n\nRaise one arm overhead and lean away from it, as if lengthening a line from your hip to your fingertips.\n\nStay in the side plane: no leaning forward, no twisting. The hips stay level and the other arm hangs loose."},
+
+    {n:"Wrist stretch",   h:"Press each palm back gently, 15 seconds per hand.",       s:30,
+     d:"Reach one arm in front of you, elbow straight, palm forward like a stop sign.\n\nWith the other hand, pull the fingers gently back towards you until you feel the stretch along the underside of the forearm. Fifteen seconds, then swap hands.\n\nTo cover the other side, turn the palm down and press the back of the hand towards you for ten seconds."},
+
+    {n:"Eye rest",        h:"Look at something about 6 metres away and blink softly.", s:20,
+     d:"Look at something roughly 6 metres away: a window, the far wall, a doorway.\n\nBlink softly a few times and let the focusing muscle release instead of holding at screen distance.\n\nDo not spend it on your phone. That is the same distance you are trying to get away from."}
   ];
 
   var CYCLES = num("cycles",4);
@@ -421,7 +485,8 @@
 
   var el = {};
   ["time","phase","arcPath","head","modes","lenVal","minus","plus","toggle","reset","skip","sound","theme",
-   "stretch","segs","brkLeft","stepName","stepHow","bDone","bHold","bExit"]
+   "stretch","segs","brkLeft","stepName","stepHow","bDone","bHold","bExit",
+   "help","sheet","sheetTitle","sheetBody","sheetClose"]
     .forEach(function(id){ el[id] = document.getElementById(id); });
 
   var C = 2 * Math.PI * 88;
@@ -572,6 +637,7 @@
   }
 
   function exitBreak(){
+    closeSheet();
     brk.on = false;
     brk.running = false;
     document.body.classList.remove("brk");
@@ -580,6 +646,7 @@
   }
 
   function nextStep(auto){
+    closeSheet();
     if(brk.i < brk.list.length - 1){
       brk.i++;
       loadStep();
@@ -613,6 +680,7 @@
       el.head.style.transform = "rotate(360deg)";
       el.bDone.textContent = "Back to timer";
       el.bHold.style.visibility = "hidden";
+      el.help.style.visibility = "hidden";
       document.body.classList.remove("idle");
       return;
     }
@@ -633,6 +701,7 @@
     el.phase.textContent = "Step " + (brk.i + 1) + " of " + brk.list.length;
     el.stepName.textContent = st.n;
     el.stepHow.textContent = st.h;
+    el.help.style.visibility = "visible";
 
     el.bDone.textContent = (brk.i === brk.list.length - 1) ? "Finish" : "Done";
     el.bHold.style.visibility = timed ? "visible" : "hidden";
@@ -640,6 +709,41 @@
 
     document.body.classList.toggle("idle", !brk.running);
   }
+
+  /* the step timer waits while you read */
+  var sheetHeld = false;
+
+  function openSheet(){
+    var st = brk.list[brk.i];
+    if(!brk.on || brk.finished || !st) return;
+    el.sheetTitle.textContent = st.n;
+    el.sheetBody.textContent = st.d || st.h;
+    el.sheetBody.scrollTop = 0;
+    if(brk.running){
+      brk.left = stepLeft();
+      brk.running = false;
+      sheetHeld = true;
+    }
+    document.body.classList.add("sheet-on");
+    el.sheetClose.focus();
+    render();
+  }
+
+  function closeSheet(){
+    if(!document.body.classList.contains("sheet-on")) return;
+    document.body.classList.remove("sheet-on");
+    if(sheetHeld){
+      sheetHeld = false;
+      if(brk.on && !brk.finished){
+        brk.endsAt = Date.now() + brk.left;
+        brk.running = true;
+      }
+    }
+    render();
+  }
+
+  el.help.addEventListener("click", openSheet);
+  el.sheetClose.addEventListener("click", closeSheet);
 
   el.stretch.addEventListener("click", function(){
     stopAlarm();
@@ -783,8 +887,14 @@
   el.sound.setAttribute("aria-pressed", soundOn);
 
   document.addEventListener("keydown", function(e){
+    var sheetOpen = document.body.classList.contains("sheet-on");
+    if(e.code === "Escape"){
+      if(sheetOpen){ e.preventDefault(); closeSheet(); }
+      return;
+    }
     if(e.code !== "Space" && e.code !== "Enter") return;
     e.preventDefault();
+    if(sheetOpen){ closeSheet(); return; }
     if(!brk.on){ el.toggle.click(); return; }
     (el.bHold.style.visibility === "hidden" ? el.bDone : el.bHold).click();
   });
