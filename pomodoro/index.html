@@ -212,6 +212,54 @@
 
   :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
 
+  /* ---------- stretch break ---------- */
+  .brkbar{display:none;align-items:center;gap:9px;width:100%}
+  .segs{display:flex;gap:4px;flex:1}
+  .seg{height:3px;flex:1;border-radius:2px;background:var(--track);transition:background .25s ease}
+  .seg.on{background:var(--accent-text)}
+  .brkleft{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums;flex:none;
+  }
+  .stepinfo{
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;text-align:center;width:100%;min-height:52px;
+  }
+  .stepname{
+    font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.25;
+    max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .stephow{
+    font-size:11.5px;color:var(--muted);line-height:1.4;max-width:268px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .time.reps{
+    font-size:calc(var(--ring) * .125);line-height:1.25;font-weight:400;
+    max-width:72%;text-align:center;
+  }
+
+  /* fixed columns: the row never reflows when Pause hides or a label changes */
+  .controls.brk{display:none;width:100%;grid-template-columns:1fr 76px 30px;gap:7px}
+  .controls.brk .btn{width:100%;min-width:0;padding:9px 6px}
+  .controls.brk .icon{justify-self:center}
+
+  .stretchbar{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;
+    padding:8px 12px;border-radius:9px;
+    border:1px dashed var(--line);background:none;color:var(--muted);
+    transition:color .16s ease,border-color .16s ease,background .16s ease;
+  }
+  .stretchbar:hover{color:var(--accent-text);border-color:var(--accent-text);background:var(--surface)}
+  .stretchbar svg{
+    width:17px;height:17px;flex:none;fill:none;stroke:currentColor;
+    stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  }
+
+  body.brk .modes,body.brk .stepper,body.brk .controls.main,body.brk .stretchbar{display:none}
+  body.brk .brkbar,body.brk .stepinfo{display:flex}
+  body.brk .controls.brk{display:grid}
+
   /* ---------- ringing ---------- */
   @keyframes throb{0%,100%{opacity:1}50%{opacity:.45}}
   @keyframes halo{0%,100%{r:13;opacity:.5}50%{r:19;opacity:.9}}
@@ -223,6 +271,7 @@
 
   @media (max-height:280px){
     .stepper{display:none}
+    body.brk .stepinfo{display:none}
     :root{--ring:clamp(84px,30vh,120px)}
   }
   @media (prefers-reduced-motion:reduce){
@@ -234,6 +283,11 @@
 <div class="app">
 
   <div class="modes" id="modes" role="group" aria-label="Timer mode"></div>
+
+  <div class="brkbar">
+    <div class="segs" id="segs"></div>
+    <span class="brkleft" id="brkLeft">00:00</span>
+  </div>
 
   <div class="dial">
     <svg viewBox="0 0 200 200" aria-hidden="true">
@@ -268,7 +322,12 @@
     <button class="step" id="plus" type="button" aria-label="Increase by one minute">+</button>
   </div>
 
-  <div class="controls">
+  <div class="stepinfo" aria-live="polite">
+    <div class="stepname" id="stepName"></div>
+    <div class="stephow" id="stepHow"></div>
+  </div>
+
+  <div class="controls main">
     <button class="btn primary" id="toggle" type="button">Start</button>
     <button class="btn" id="reset" type="button">Reset</button>
     <button class="btn" id="skip" type="button">Skip</button>
@@ -295,6 +354,21 @@
       </svg>
     </button>
   </div>
+
+  <div class="controls brk">
+    <button class="btn primary" id="bDone" type="button">Done</button>
+    <button class="btn" id="bHold" type="button">Pause</button>
+    <button class="icon" id="bExit" type="button" title="Leave stretches" aria-label="Leave stretches">
+      <svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11m0-11-11 11"/></svg>
+    </button>
+  </div>
+  <button class="stretchbar" id="stretch" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="3.9" r="2"/>
+      <path d="M12 8v6m0-6L8.4 5m3.6 3 3.6-3m-3.6 6-2.7 5.6M12 14l2.7 5.6"/>
+    </svg>
+    <span>Stretch break</span>
+  </button>
 
 </div>
 
@@ -326,11 +400,28 @@
     if(saved && saved.work) mins = saved;
   }catch(e){}
 
+  /* ---------------- the stretch routine ----------------
+     Ordered on purpose: move first so nothing is stretched cold, open the
+     chest before asking the neck to turn, then the parts the keyboard loads,
+     and finish with the eyes on the way back to the screen.
+     s = seconds on the dial, r = a count to work through at your own pace.
+     Add or remove steps freely - the screen follows the list.             */
+  var ROUTINE = [
+    {n:"Walk in place",   h:"Stand all the way up. Easy steps, loose arms.",           s:45},
+    {n:"Shoulder rolls",  h:"Five rolls back, then five forward.",                     r:"10 rolls"},
+    {n:"Chest opener",    h:"Clasp your hands behind your back and lift your chest.",  s:20},
+    {n:"Neck turns",      h:"Turn slowly to each side. Stop where it tightens.",       r:"2 per side"},
+    {n:"Side bends",      h:"Reach one arm overhead and lean away from it.",           r:"3 per side"},
+    {n:"Wrist stretch",   h:"Press each palm back gently, 15 seconds per hand.",       s:30},
+    {n:"Eye rest",        h:"Look at something about 6 metres away and blink softly.", s:20}
+  ];
+
   var CYCLES = num("cycles",4);
   var MAX_RING = 120000;              /* alarm self-stops after 2 minutes */
 
   var el = {};
-  ["time","phase","arcPath","head","modes","lenVal","minus","plus","toggle","reset","skip","sound","theme"]
+  ["time","phase","arcPath","head","modes","lenVal","minus","plus","toggle","reset","skip","sound","theme",
+   "stretch","segs","brkLeft","stepName","stepHow","bDone","bHold","bExit"]
     .forEach(function(id){ el[id] = document.getElementById(id); });
 
   var C = 2 * Math.PI * 88;
@@ -439,15 +530,151 @@
     }
   }
 
+  /* ---------------- stretch break ---------------- */
+  var brk = { on:false, list:[], i:0, left:0, endsAt:0, running:false, finished:false };
+
+  function tone(freq, dur, peak){
+    if(!soundOn) return;
+    unlock();
+    if(ctx) note(freq, ctx.currentTime + 0.02, dur, peak, "sine");
+  }
+
+  function stepLeft(){ return brk.running ? Math.max(0, brk.endsAt - Date.now()) : brk.left; }
+
+  function loadStep(){
+    var st = brk.list[brk.i];
+    if(st && st.s){
+      brk.left = st.s * 1000;
+      brk.endsAt = Date.now() + brk.left;
+      brk.running = true;
+    }else{
+      brk.left = 0;
+      brk.running = false;
+    }
+  }
+
+  function enterBreak(){
+    brk.list = ROUTINE;
+    brk.i = 0;
+    brk.finished = false;
+    brk.on = true;
+
+    el.segs.innerHTML = "";
+    brk.list.forEach(function(){
+      var s = document.createElement("span");
+      s.className = "seg";
+      el.segs.appendChild(s);
+    });
+
+    document.body.classList.add("brk");
+    loadStep();
+    render();
+  }
+
+  function exitBreak(){
+    brk.on = false;
+    brk.running = false;
+    document.body.classList.remove("brk");
+    el.time.classList.remove("reps");
+    render();
+  }
+
+  function nextStep(auto){
+    if(brk.i < brk.list.length - 1){
+      brk.i++;
+      loadStep();
+      if(auto) tone(880, 0.18, 0.10);
+    }else{
+      brk.finished = true;
+      brk.running = false;
+      if(soundOn){ unlock(); playReward(); }
+    }
+    render();
+  }
+
+  function renderBreak(){
+    var st = brk.list[brk.i];
+    var timed = !!(st && st.s);
+    var left = stepLeft();
+
+    Array.prototype.forEach.call(el.segs.children, function(s, idx){
+      s.classList.toggle("on", brk.finished || idx < brk.i || (idx === brk.i && timed && left <= 0));
+    });
+
+    el.brkLeft.textContent = fmt(remaining());
+
+    if(brk.finished){
+      el.time.classList.remove("reps");
+      el.time.textContent = "✓";
+      el.phase.textContent = "All done";
+      el.stepName.textContent = "That is the whole set";
+      el.stepHow.textContent = "Sit back down when the timer calls you.";
+      el.arcPath.style.strokeDashoffset = 0;
+      el.head.style.transform = "rotate(360deg)";
+      el.bDone.textContent = "Back to timer";
+      el.bHold.style.visibility = "hidden";
+      document.body.classList.remove("idle");
+      return;
+    }
+
+    var p = 0;
+    if(timed){
+      el.time.classList.remove("reps");
+      el.time.textContent = fmt(left);
+      p = 1 - (left / (st.s * 1000));
+    }else{
+      el.time.classList.add("reps");
+      el.time.textContent = st.r;
+    }
+
+    el.arcPath.style.strokeDashoffset = C * (1 - p);
+    el.head.style.transform = "rotate(" + (p * 360) + "deg)";
+
+    el.phase.textContent = "Step " + (brk.i + 1) + " of " + brk.list.length;
+    el.stepName.textContent = st.n;
+    el.stepHow.textContent = st.h;
+
+    el.bDone.textContent = (brk.i === brk.list.length - 1) ? "Finish" : "Done";
+    el.bHold.style.visibility = timed ? "visible" : "hidden";
+    el.bHold.textContent = brk.running ? "Pause" : "Resume";
+
+    document.body.classList.toggle("idle", !brk.running);
+  }
+
+  el.stretch.addEventListener("click", function(){
+    stopAlarm();
+    if(brk.on) return;
+    /* on an idle break, start its countdown too - start() opens the stretches */
+    if(!state.running && state.mode !== "work") start();
+    else enterBreak();
+  });
+  el.bExit.addEventListener("click", exitBreak);
+  el.bDone.addEventListener("click", function(){
+    if(brk.finished) exitBreak();
+    else nextStep(false);
+  });
+  el.bHold.addEventListener("click", function(){
+    if(brk.running){ brk.left = stepLeft(); brk.running = false; }
+    else { brk.endsAt = Date.now() + brk.left; brk.running = true; }
+    render();
+  });
+
   /* ---------------- timer ---------------- */
   function total(){ return mins[state.mode] * 60000; }
   function remaining(){ return state.running ? Math.max(0, state.endsAt - Date.now()) : state.left; }
 
-  function render(){
-    var left = remaining(), tot = total();
-    var secs = Math.ceil(left / 1000);
+  function fmt(ms){
+    var secs = Math.ceil(ms / 1000);
     var mm = Math.floor(secs / 60), ss = secs % 60;
-    el.time.textContent = (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+    return (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+
+  function render(){
+    if(brk.on){ renderBreak(); return; }
+
+    var left = remaining(), tot = total();
+    el.time.classList.remove("reps");
+    el.time.textContent = fmt(left);
 
     var p = tot ? 1 - (left / tot) : 0;
     el.arcPath.style.strokeDashoffset = C * (1 - p);
@@ -481,8 +708,11 @@
 
   function start(){
     unlock();
+    var fresh = state.left === total();
     state.endsAt = Date.now() + state.left;
     state.running = true;
+    /* a break that starts from the top opens the stretches on its own */
+    if(fresh && state.mode !== "work" && (!brk.on || brk.finished)){ enterBreak(); return; }
     render();
   }
 
@@ -495,6 +725,7 @@
   function complete(){
     var wasWork = state.mode === "work";
     state.running = false;
+    if(brk.on) exitBreak();
     if(wasWork){
       state.done++;
       state.mode = (state.done % CYCLES === 0) ? "long" : "short";
@@ -507,9 +738,11 @@
   }
 
   setInterval(function(){
-    if(!state.running) return;
-    if(Date.now() >= state.endsAt) complete();
-    else render();
+    if(brk.on && brk.running && Date.now() >= brk.endsAt) nextStep(true);
+    if(state.running){
+      if(Date.now() >= state.endsAt) complete();
+      else render();
+    }else if(brk.on) render();
   }, 250);
 
   /* ---------------- controls ---------------- */
@@ -550,10 +783,10 @@
   el.sound.setAttribute("aria-pressed", soundOn);
 
   document.addEventListener("keydown", function(e){
-    if(e.code === "Space" || e.code === "Enter"){
-      e.preventDefault();
-      el.toggle.click();
-    }
+    if(e.code !== "Space" && e.code !== "Enter") return;
+    e.preventDefault();
+    if(!brk.on){ el.toggle.click(); return; }
+    (el.bHold.style.visibility === "hidden" ? el.bDone : el.bHold).click();
   });
 
   render();
